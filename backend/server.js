@@ -51,10 +51,12 @@ function project_(db,s,accountId){
  writeView_(db,'Kategori',['ID','Nama','Jenis'],s.categories.map(function(c){return [c.id,c.name,c.type];}));
  writeView_(db,'Anggaran',['ID','Bulan','Kategori','Batas IDR'],s.budgets.map(function(b){return [b.id,b.month,cn(b.categoryId),b.amount];}));
  writeView_(db,'Tagihan',['ID','Nama','Nominal IDR','Tanggal jatuh tempo','Dompet','Kategori'],s.bills.map(function(b){return [b.id,b.name,b.amount,b.day,wn(b.walletId),cn(b.categoryId)];}));
+ writeView_(db,'Hutang',['ID','Jenis','Nama','Keterangan','Total IDR','Terbayar IDR','Sisa IDR','Tanggal','Jatuh tempo'],(s.debts||[]).map(function(d){var paid=Finance.debtPaid(d);return [d.id,d.kind,d.person,d.description,d.amount,paid,d.amount-paid,d.date,d.due];}));
+ writeView_(db,'Cicilan',['ID Hutang','ID Pembayaran','Tanggal','Nominal IDR','Catatan','Dibatalkan'],(s.debts||[]).reduce(function(rows,d){return rows.concat(d.payments.map(function(x){return [d.id,x.id,x.date,x.amount,x.note,x.void?'YA':''];}));},[]));
  writeView_(db,'Riwayat',['ID','Waktu UTC','Aktivitas'],s.history.map(function(h){return [h.id,h.at,h.label];}));
 }
 function refreshViews(){var db=db_();var accounts=Object.keys(props_().getProperties()).filter(function(k){return k.indexOf('ACCOUNT_')===0;});if(!accounts.length){project_(db,read_(db),'legacy');return;}accounts.forEach(function(k){var a=JSON.parse(props_().getProperty(k));project_(db,read_(db,a.id),a.id);});}
-function doGet(){return json_({ok:true,app:'Arus',version:'2.0',message:'Masuk dengan username dan PIN melalui aplikasi Arus.'});}
+function doGet(){return json_({ok:true,app:'Arus',version:'2.1',message:'Masuk dengan username dan PIN melalui aplikasi Arus.'});}
 function username_(name){var u=String(name||'').trim().toLowerCase();if(!/^[a-z0-9_.-]{3,24}$/.test(u))throw Error('Username harus 3–24 karakter: huruf, angka, titik, garis bawah, atau tanda hubung.');return u;}
 function accountKey_(username){return 'ACCOUNT_'+hash_(username);}
 function account_(username){var v=props_().getProperty(accountKey_(username));return v?JSON.parse(v):null;}
