@@ -12,3 +12,5 @@ test('budget updates same month/category without duplication',()=>{let s=F.mutat
 test('bills handle February and prevent duplicate payments',()=>{let s=F.mutate(F.seed(),'saveBill',{name:'Internet',day:31,amount:150000,walletId:'cash',categoryId:'out3'});const id=s.bills[0].id;s=F.mutate(s,'payBill',{id,month:'2028-02'});assert.equal(s.transactions[0].date,'2028-02-29');assert.throws(()=>F.mutate(s,'payBill',{id,month:'2028-02'}));});
 test('mutations immutable and revision monotonic',()=>{const a=F.seed(),b=add(a);assert.equal(a.transactions.length,0);assert.equal(a.revision,0);assert.equal(b.revision,1);assert.equal(b.history.length,1);});
 test('CSV quotes commas/newlines and prevents spreadsheet formula injection',()=>{const x=F.csv([['=SUM(1,2)','quote"test','two\nlines',123]]);assert.ok(x.includes('"\'=SUM(1,2)"'));assert.ok(x.includes('"quote""test"'));assert.ok(x.includes('"two\nlines"'));});
+
+test('non-transfer ignores hidden destination field when filtering wallets',()=>{const s=add(F.seed(),{walletId:'bank',toWalletId:'cash'});assert.equal(F.filter(s,{wallet:'cash'}).length,0);assert.equal(s.transactions[0].toWalletId,undefined);});
